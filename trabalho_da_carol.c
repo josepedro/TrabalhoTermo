@@ -3,135 +3,166 @@
 #include <string.h>
 
 typedef struct tdado{
-    float temperatura;
+    int temperatura;
     float pressao_sat;
-    float vl;
-    float vv;
-    float ul;
+    float vf;
+    float vg;
+    float uf;
+    float ufg;
+    float ug;
+    float hf;
+    float hfg;
+    float hg;
+    float sf;
+    float sfg;
+    float sg;
     struct tdado *esq;
     struct tdado *dir;
-}Tdado;
+} Tdado;
 
-FILE *fileVideo;
-
-Tvideo *instala(Tvideo *raiz, char *codigo, char *titulo, char *midia, char *preco, char *genero){
+Tdado *constroi(Tdado *raiz, int temperatura, float pressao_sat, float vf, float vg, float uf, float ufg, float ug, float hf, float hfg, float hg, float sf, float sfg, float sg){
     if(raiz != NULL){
-        if(strcmp(codigo, raiz->codigo) <= 0){
-            raiz->esq = instala(raiz->esq, codigo, titulo, midia, preco, genero);
+        if(temperatura <= raiz->temperatura){
+            raiz->esq = constroi(raiz->esq, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
             //printf("\ncodigo <= raiz->codigo: %s\n",raiz->nome);
         }
         else{
-            raiz->dir = instala(raiz->dir, codigo, titulo, midia, preco, genero);
+            raiz->dir = constroi(raiz->dir, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
             //printf("\nelse: %s\n",raiz->nome);
         }        
         return raiz;
     }
     else{
-        raiz = (Tvideo *) malloc(sizeof(Tvideo));
-        raiz->codigo = codigo;
-        raiz->titulo = titulo;
-        raiz->midia = midia;
-        raiz->preco = preco;
-        raiz->genero = genero;
+        raiz = (Tdado *) malloc(sizeof(Tdado));
+        raiz->temperatura = temperatura;
+        raiz->pressao_sat = pressao_sat;
+        raiz->vf = vf;
+        raiz->vg = vg;
+        raiz->uf = uf;
+        raiz->ufg = ufg;
+        raiz->ug = ug;
+        raiz->hf = hf;
+        raiz->hfg = hfg;
+        raiz->hg = hg;
+        raiz->sf = sf;
+        raiz->sfg = sfg;
+        raiz->sg = sg;
         raiz->esq = NULL;
         raiz->dir = NULL;
         return raiz;
     }
 }
 
-void PreFixEsq(Tvideo *raiz){
+void mostrar_valores_decrescente_temperatura(Tdado *raiz){
       if(raiz != NULL){
-          PreFixEsq(raiz->esq);
-          printf("\n%s\t%s\t%s\t%s\t%s\n", raiz->codigo, raiz->titulo, raiz->midia, raiz->preco, raiz->genero);
-          fprintf(fileSaida, "%s\t%s\t%s\t%s\t%s\n", raiz->codigo, raiz->titulo, raiz->midia, raiz->preco, raiz->genero);
-          /*fprintf(fileCodigo, "%d\t%s\t%d\n", NoCodigo->codigo, NoCodigo->nome, NoCodigo->local);
-          fprintf(fileCurso, "%d\t%s\t%d\n", NoCurso->codigo, NoCurso->nome, NoCurso->local);
-          //printf("%c",No->Dado);*/
-          PreFixEsq(raiz->dir);
-          //printf("%c",No->Dado);
+          mostrar_valores_decrescente_temperatura(raiz->esq);
+          mostrar_valores_decrescente_temperatura(raiz->dir);
+          printf("%d %f %f %f %f %f %f %f %f %f %f %f %f\n", raiz->temperatura, raiz->pressao_sat, raiz->vf, raiz->vg, raiz->uf, raiz->ufg, raiz->ug, raiz->hf, raiz->hfg, raiz->hg, raiz->sf, raiz->sfg, raiz->sg);  
+
       }
 }
 
-int main(){
-    /*char *filme1 = "A.";
-    char *filme2 = "A,";
+Tdado *pesquisa_temperatura(Tdado *raiz, int temperatura){
+    if (raiz != NULL){
+        if (temperatura < raiz->temperatura){
+            pesquisa_temperatura(raiz->esq, temperatura);         
+        }
+        else if (temperatura > raiz->temperatura){
+            pesquisa_temperatura(raiz->dir, temperatura);
+        }     
+        else if (temperatura == raiz->temperatura){
+            return raiz;
+        }
+        else {
+            return NULL;
+        }
+    }
+}
 
-    //strcmp(raiz->nome,nome) == 1 || strcmp(raiz->nome,nome) == 0
-    printf("\n\t%d\n", strcmp(filme1,filme2));*/
-    
-    Tvideo *raiz = NULL;
+
+FILE *fileTabela;
+
+int main(){
+
+    Tdado *raiz = NULL;
 
     //Abrindo arquivo
-    fileVideo = fopen("tabelaTermo.txt","r");
-    if (fileVideo == NULL)
+    fileTabela = fopen("saturado-entrada-temperatura.txt","r");
+    if (fileTabela == NULL)
     {
         printf("\n%s\n", "Arquivo nao encontrado");
     }
 
-    fileSaida = fopen("VIDEOS_CODIGO.txt","w");
-     if (fileVideo == NULL)
-    {
-        printf("\n%s\n", "Arquivo nao criado");
-    }
-    
-
     //Contando quantidade de linhas no arquivo
-    char caractere = getc(fileVideo);
+    char caractere = getc(fileTabela);
     int linhas = 0;
     while(caractere != EOF){
         if(caractere == '\n'){
-            caractere = getc(fileVideo);
+            caractere = getc(fileTabela);
             linhas++;  
         }
         else 
-             caractere = getc(fileVideo);
+            caractere = getc(fileTabela);
     }
 
-
     //restando o ponteiro do arquivo
-    fclose(fileVideo);
-    fileVideo = fopen("Videos.txt","r");
-    if (fileVideo == NULL)
+    fclose(fileTabela);
+    fileTabela = fopen("saturado-entrada-temperatura.txt","r");
+    if (fileTabela == NULL)
     {
         printf("\n%s\n", "Arquivo nao encontrado");
     }
 
-    //Lendo cabeçalho para teste de leitura
-    char codigoP[20];
-    char tituloP[20];
-    char midiaP[20];
-    char precoP[20];
-    char generoP[20];
-    fscanf(fileVideo,"%s %s %s %s %s\n",codigoP, tituloP, midiaP, precoP, generoP);
-    printf("\n%s\t%s\t%s\t%s\t%s\n", codigoP, tituloP, midiaP, precoP, generoP);
-
     //Construindo a arvore
-    int espaco_codigo = 15, espaco_titulo = 100, espaco_midia = 10, espaco_preco = 10, espaco_genero = 30;  
-    char videos_titulo[linhas][espaco_titulo];
-    char videos_midia[linhas][espaco_midia];
-    char videos_preco[linhas][espaco_preco];
-    char videos_genero[linhas][espaco_genero];
-    char videos_codigo[linhas][espaco_codigo];
     int i;
-    char codigo[espaco_codigo], titulo[espaco_titulo], midia[espaco_midia], preco[espaco_preco], genero[espaco_genero];
-    float precoI;
+    int temperatura;
+    float pressao_sat;
+    float vf;
+    float vg;
+    float uf;
+    float ufg;
+    float ug;
+    float hf;
+    float hfg;
+    float hg;
+    float sf;
+    float sfg;
+    float sg;
     for (i = 0; i < linhas; ++i)
     {
-        fscanf(fileVideo,"%[A-Z0-9] %s %[0-9A-Z-/+] %[0-9.] %[A-Z]\n", codigo, titulo, midia, preco, genero);
-        //printf("\n%s\t%s\t%s\t%s\t%s\n", codigo, titulo, midia, preco, genero);
+        fscanf(fileTabela,"%d %f %f %f %f %f %f %f %f %f %f %f %f\n", &temperatura, &pressao_sat, 
+            &vf, &vg, &uf, &ufg, &ug, &hf, &hfg, &hg, &sf, &sfg, &sg);
+        //printf("%d %f %f %f %f %f %f %f %f %f %f %f %f\n", temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
         //Copiando os dados para as tabelas
-        strcpy(videos_codigo[i], codigo);
-        strcpy(videos_titulo[i], titulo);
-        strcpy(videos_midia[i], midia);
-        strcpy(videos_preco[i], preco);
-        strcpy(videos_genero[i], genero);
+        raiz = constroi(raiz, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
         //printf("\n%s\t%s\t%s\t%s\t%s\n", videos_codigo[i], videos_titulo[i], videos_midia[i], videos_preco[i], videos_genero[i]);
-        raiz = instala(raiz, videos_codigo[i], videos_titulo[i], videos_midia[i], videos_preco[i], videos_genero[i]);
     }
 
-    PreFixEsq(raiz);
+    //mostrar_valores_decrescente_temperatura(raiz);
 
+    //Pesquisando Temperatura
+    int temperatura_consulta;
+    printf("\n\n\tDigite a temperatura em graus celcius: ");
+    scanf("%d",&temperatura_consulta);
 
+    Tdado *dados_consulta = pesquisa_temperatura(raiz, temperatura_consulta);
+
+    printf("\n\tDados da consulta:\n");
+    printf("\t\tTemperatura: %d graus Celcius\n", dados_consulta->temperatura); 
+    printf("\t\tPressao de Saturacao: %f kPa\n", dados_consulta->pressao_sat); 
+    printf("\t\tVolume Especifico Saturado Liquido: %f m^3/kg\n", dados_consulta->vf); 
+    printf("\t\tVolume Especifico Saturado Vapor: %f m^3/kg\n", dados_consulta->vg);
+    printf("\t\tEnergia Interna Saturado Liquido: %f kJ/kg\n", dados_consulta->uf); 
+    printf("\t\tEnergia Interna Evaporacao: %f kJ/kg\n", dados_consulta->ufg);
+    printf("\t\tEnergia Interna Saturado Vapor: %f kJ/kg\n", dados_consulta->ug);  
+    printf("\t\tEntalpia Saturado Liquido: %f kJ/kg\n", dados_consulta->hf);
+    printf("\t\tEntalpia Evaporacao: %f kJ/kg\n", dados_consulta->hfg);
+    printf("\t\tEntalpia Saturado Vapor: %f kJ/kg\n", dados_consulta->hg);
+    printf("\t\tEntropia Saturado Liquido: %f kJ/kg . K\n", dados_consulta->sf);
+    printf("\t\tEntropia Evaporacao: %f kJ/kg . K\n",dados_consulta->sfg);
+    printf("\t\tEntropia Saturado Vapor: %f kJ/kg . K\n", dados_consulta->sg);
+
+    fclose(fileTabela);
 
     printf("\n\n\tFIM\n\n");
     return 0;
