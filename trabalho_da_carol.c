@@ -20,6 +20,27 @@ typedef struct tdado{
     struct tdado *dir;
 } Tdado;
 
+typedef struct ldado{
+    int temperatura;
+    float pressao_sat;
+    float vf;
+    float vg;
+    float uf;
+    float ufg;
+    float ug;
+    float hf;
+    float hfg;
+    float hg;
+    float sf;
+    float sfg;
+    float sg;
+    struct ldado *pro;
+} Ldado;
+
+
+
+FILE *fileTabela;
+
 Tdado *constroi(Tdado *raiz, int temperatura, float pressao_sat, float vf, float vg, float uf, float ufg, float ug, float hf, float hfg, float hg, float sf, float sfg, float sg){
     if(raiz != NULL){
         if(temperatura <= raiz->temperatura){
@@ -79,12 +100,16 @@ Tdado *pesquisa_temperatura(Tdado *raiz, int temperatura){
     }
 }
 
+Ldado *interpola_pesquisa_temperatura(Ldado *lista, int temperatura){
 
-FILE *fileTabela;
 
-int main(){
+
+}
+
+void pesquisa_temperatura_saturado(){
 
     Tdado *raiz = NULL;
+    Ldado *lista = NULL;
 
     //Abrindo arquivo
     fileTabela = fopen("saturado-entrada-temperatura.txt","r");
@@ -105,7 +130,7 @@ int main(){
             caractere = getc(fileTabela);
     }
 
-    //restando o ponteiro do arquivo
+    //resetando o ponteiro do arquivo
     fclose(fileTabela);
     fileTabela = fopen("saturado-entrada-temperatura.txt","r");
     if (fileTabela == NULL)
@@ -134,6 +159,7 @@ int main(){
             &vf, &vg, &uf, &ufg, &ug, &hf, &hfg, &hg, &sf, &sfg, &sg);
         //printf("%d %f %f %f %f %f %f %f %f %f %f %f %f\n", temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
         //Copiando os dados para as tabelas
+        lista = listar_dado(lista, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
         raiz = constroi(raiz, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
         //printf("\n%s\t%s\t%s\t%s\t%s\n", videos_codigo[i], videos_titulo[i], videos_midia[i], videos_preco[i], videos_genero[i]);
     }
@@ -146,6 +172,10 @@ int main(){
     scanf("%d",&temperatura_consulta);
 
     Tdado *dados_consulta = pesquisa_temperatura(raiz, temperatura_consulta);
+    if (dados_consulta == NULL){
+        dados_consulta = interpola_pesquisa_temperatura(raiz, temperatura_consulta);
+    }
+
 
     printf("\n\tDados da consulta:\n");
     printf("\t\tTemperatura: %d graus Celcius\n", dados_consulta->temperatura); 
@@ -163,6 +193,28 @@ int main(){
     printf("\t\tEntropia Saturado Vapor: %f kJ/kg . K\n", dados_consulta->sg);
 
     fclose(fileTabela);
+
+}
+
+int main(){
+
+    int opcao;
+
+    while(1){
+    printf("\n\n\nMenu de opcoes\n");
+    printf("\t\t-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
+    printf("\t\t\t1 = Pesquisa saturado com entrada temperatura\n");
+    printf("\t\t\t2 = ciclo de Brayton\n");
+    printf("\t\t\t3 = buscar os dados na tabela\n");
+    printf("\t\t\t4 = sair do programa\n");
+    printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
+    scanf("%d",&opcao);
+
+    pesquisa_temperatura_saturado();
+
+    }
+
+    
 
     printf("\n\n\tFIM\n\n");
     return 0;
