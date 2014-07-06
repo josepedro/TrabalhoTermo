@@ -54,13 +54,12 @@ void listar_elementos(Ldado *lista){
     }
 }
 
-Ldado *interpola_pesquisa_temperatura(Ldado *lista, int temperatura){
+Ldado *interpola_pesquisa_temperatura(Ldado *lista, float temperatura){
     Ldado *ant, *post, *dados_consulta = NULL;
     post = lista;
     while(post != NULL){
         if (lista->temperatura < temperatura && post->temperatura > temperatura){
             dados_consulta = (Ldado *) malloc(sizeof(Ldado));
-            printf("\n\t\t\ttemperatura anterior: %d temperatura posterior: %d\n", ant->temperatura, post->temperatura);
             dados_consulta->temperatura = temperatura;
             dados_consulta->pressao_sat = ((temperatura - ant->temperatura)*
                 (post->pressao_sat - ant->pressao_sat)/(post->temperatura - ant->temperatura)) + ant->pressao_sat;
@@ -96,7 +95,7 @@ Ldado *interpola_pesquisa_temperatura(Ldado *lista, int temperatura){
 
 void mostrar_resultado_pesquisa_lista(Ldado *dados_consulta){
     printf("\n\tDados da consulta:\n");
-    printf("\t\tTemperatura: %d graus Celcius\n", dados_consulta->temperatura); 
+    printf("\t\tTemperatura: %f graus Celcius\n", dados_consulta->temperatura); 
     printf("\t\tPressao de Saturacao: %f kPa\n", dados_consulta->pressao_sat); 
     printf("\t\tVolume Especifico Saturado Liquido: %f m^3/kg\n", dados_consulta->vf); 
     printf("\t\tVolume Especifico Saturado Vapor: %f m^3/kg\n", dados_consulta->vg);
@@ -166,7 +165,37 @@ Ldado *extrair_dados(FILE *fileTabela, int linhas, Ldado *lista){
     return lista;
 }
 
-void pesquisa_temperatura_saturado(){
+Ldado *consultar_temperatura(Ldado *lista, float temperatura){
+    if (lista != NULL){
+        if (lista->temperatura == temperatura){
+            return lista;
+        }
+        else{
+            consultar_temperatura(lista->pro, temperatura);
+        }
+    }
+    else{
+        return NULL;
+    }
+}
+
+void pesquisar_interpolado(Ldado *lista, float temperatura){
+    Ldado *dados_consulta = consultar_temperatura(lista, temperatura);
+    if (dados_consulta == NULL){
+        Ldado *dados_consulta = interpola_pesquisa_temperatura(lista, temperatura);
+        if (dados_consulta == NULL){
+            printf("\n\t\t%s\n", "Erro na consulta. Insira uma temperatura valida");
+        }
+        else{
+            mostrar_resultado_pesquisa_lista(dados_consulta);
+        }
+    }
+    else{
+        mostrar_resultado_pesquisa_lista(dados_consulta);
+    }
+}
+
+void pesquisar_temperatura_saturado(){
 
     //iniciando vairiáveis para pesquisa
     Ldado *lista = NULL;
@@ -186,31 +215,17 @@ void pesquisa_temperatura_saturado(){
     //Construir lista
     lista = extrair_dados(fileTabela, linhas, lista);
 
-    listar_elementos(lista);
+    //listar_elementos(lista);
 
     //Pesquisando Temperatura
-    /*float temperatura_consulta;
+    float temperatura_consulta;
     printf("\n\n\tDigite a temperatura em graus celcius: ");
     scanf("%f",&temperatura_consulta);
 
-    Tdado *dados_consulta = pesquisa_temperatura(raiz, (int) temperatura_consulta);
-    if (dados_consulta == NULL){
-        Ldado *dados_consulta = interpola_pesquisa_temperatura(lista, temperatura_consulta);
-        if (dados_consulta == NULL){
-            printf("\n\t\t%s\n", "Erro na consulta. Insira uma temperatura valida");
-        }
-        else{
-            mostrar_resultado_pesquisa_lista(dados_consulta);
-        }
-    }
-    else{
-        mostrar_resultado_pesquisa_arvore(dados_consulta);
-    }
-*/
-
+    //Pesquisa completa
+    pesquisar_interpolado(lista, temperatura_consulta);
     
     fclose(fileTabela);
-
 }
 
 int main(){
@@ -228,7 +243,7 @@ int main(){
         scanf("%d",&opcao);
 
         if (opcao == 1){
-            pesquisa_temperatura_saturado();
+            pesquisar_temperatura_saturado();
         }
         else{
             sair = 0;
