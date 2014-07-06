@@ -22,7 +22,7 @@ typedef struct ldado{
 } Ldado;
 
 
-Ldado *adicionar_dado_lista(Ldado *lista, int temperatura, float pressao_sat, float vf, float vg, float uf, float ufg, float ug, float hf, float hfg, float hg, float sf, float sfg, float sg){
+Ldado *adicionar_dado_lista(Ldado *lista, float temperatura, float pressao_sat, float vf, float vg, float uf, float ufg, float ug, float hf, float hfg, float hg, float sf, float sfg, float sg){
     if (lista != NULL){
         lista->pro = adicionar_dado_lista(lista->pro, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
     }
@@ -139,7 +139,7 @@ FILE *resetar_tabela(FILE *fileTabela, char *nome_arquivo){
     return fileTabela;
 }
 
-Ldado *extrair_dados(FILE *fileTabela, int linhas, Ldado *lista){
+Ldado *extrair_dados_temperatura(FILE *fileTabela, int linhas, Ldado *lista){
     int i;
     int temperatura;
     float pressao_sat;
@@ -179,7 +179,7 @@ Ldado *consultar_temperatura(Ldado *lista, float temperatura){
     }
 }
 
-void pesquisar_interpolado(Ldado *lista, float temperatura){
+void pesquisar_interpolado_temperatura(Ldado *lista, float temperatura){
     Ldado *dados_consulta = consultar_temperatura(lista, temperatura);
     if (dados_consulta == NULL){
         Ldado *dados_consulta = interpola_pesquisa_temperatura(lista, temperatura);
@@ -213,7 +213,7 @@ void pesquisar_temperatura_saturado(){
 
 
     //Construir lista
-    lista = extrair_dados(fileTabela, linhas, lista);
+    lista = extrair_dados_temperatura(fileTabela, linhas, lista);
 
     //listar_elementos(lista);
 
@@ -223,9 +223,141 @@ void pesquisar_temperatura_saturado(){
     scanf("%f",&temperatura_consulta);
 
     //Pesquisa completa
-    pesquisar_interpolado(lista, temperatura_consulta);
+    pesquisar_interpolado_temperatura(lista, temperatura_consulta);
     
+    //fechar tabela
     fclose(fileTabela);
+}
+
+Ldado *extrair_dados_pressao(FILE *fileTabela, int linhas, Ldado *lista){
+    int i;
+    float temperatura;
+    int pressao_sat;
+    float vf;
+    float vg;
+    float uf;
+    float ufg;
+    float ug;
+    float hf;
+    float hfg;
+    float hg;
+    float sf;
+    float sfg;
+    float sg;
+    for (i = 0; i < linhas; ++i)
+    {
+        fscanf(fileTabela,"%d %f %f %f %f %f %f %f %f %f %f %f %f\n", &pressao_sat, &temperatura, 
+            &vf, &vg, &uf, &ufg, &ug, &hf, &hfg, &hg, &sf, &sfg, &sg);
+        //printf("%d %f %f %f %f %f %f %f %f %f %f %f %f\n", pressao_sat, temperatura, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
+        //Copiando os dados para as tabelas
+        lista = adicionar_dado_lista(lista, temperatura, (float) pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
+    }
+    return lista;
+
+}
+
+Ldado *consultar_pressao(Ldado *lista, float pressao){
+    if (lista != NULL){
+        if (lista->pressao_sat == pressao){
+            return lista;
+        }
+        else{
+            consultar_temperatura(lista->pro, pressao);
+        }
+    }
+    else{
+        return NULL;
+    }
+}
+
+Ldado *interpola_pesquisa_pressao(Ldado *lista, float pressao){
+    Ldado *ant, *post, *dados_consulta = NULL;
+    post = lista;
+    while(post != NULL){
+        if (lista->pressao_sat < pressao && post->pressao_sat > pressao){
+            dados_consulta = (Ldado *) malloc(sizeof(Ldado));
+            dados_consulta->pressao_sat = pressao;
+            dados_consulta->temperatura = ((pressao - ant->pressao_sat)*
+                (post->temperatura - ant->temperatura)/(post->pressao_sat - ant->pressao_sat)) + ant->temperatura;
+            dados_consulta->vf = ((pressao - ant->pressao_sat)*
+                (post->vf - ant->vf)/(post->pressao_sat - ant->pressao_sat)) + ant->vf;
+            dados_consulta->vg = ((pressao - ant->pressao_sat)*
+                (post->vg - ant->vg)/(post->pressao_sat - ant->pressao_sat)) + ant->vg;
+            dados_consulta->uf = ((pressao - ant->pressao_sat)*
+                (post->uf - ant->uf)/(post->pressao_sat - ant->pressao_sat)) + ant->uf;
+            dados_consulta->ufg = ((pressao - ant->pressao_sat)*
+                (post->ufg - ant->ufg)/(post->pressao_sat - ant->pressao_sat)) + ant->ufg;
+            dados_consulta->ug = ((pressao - ant->pressao_sat)*
+                (post->ug - ant->ug)/(post->pressao_sat - ant->pressao_sat)) + ant->ug;
+            dados_consulta->hf = ((pressao - ant->pressao_sat)*
+                (post->hf - ant->hf)/(post->pressao_sat - ant->pressao_sat)) + ant->hf;
+            dados_consulta->hfg = ((pressao - ant->pressao_sat)*
+                (post->hfg - ant->hfg)/(post->pressao_sat - ant->pressao_sat)) + ant->hfg;
+            dados_consulta->hg = ((pressao - ant->pressao_sat)*
+                (post->hg - ant->hg)/(post->pressao_sat - ant->pressao_sat)) + ant->hg;
+            dados_consulta->sf = ((pressao - ant->pressao_sat)*
+                (post->sf - ant->sf)/(post->pressao_sat - ant->pressao_sat)) + ant->sf;
+            dados_consulta->sfg = ((pressao - ant->pressao_sat)*
+                (post->sfg- ant->sfg)/(post->pressao_sat - ant->pressao_sat)) + ant->sfg;
+            dados_consulta->sg = ((pressao - ant->pressao_sat)*
+                (post->sg - ant->sg)/(post->pressao_sat - ant->pressao_sat)) + ant->sg;
+            break;        
+        }
+        ant = post;
+        post = post->pro;
+    }
+    return dados_consulta;
+}
+
+void pesquisar_interpolado_pressao(Ldado *lista, float pressao){
+    Ldado *dados_consulta = consultar_pressao(lista, pressao);
+    if (dados_consulta == NULL){
+        Ldado *dados_consulta = interpola_pesquisa_pressao(lista, pressao);
+        if (dados_consulta == NULL){
+            printf("\n\t\t%s\n", "Erro na consulta. Insira uma pressao valida");
+        }
+        else{
+            mostrar_resultado_pesquisa_lista(dados_consulta);
+        }
+    }
+    else{
+        mostrar_resultado_pesquisa_lista(dados_consulta);
+    }
+}
+
+void pesquisar_pressao_saturado(){
+
+    //iniciando vairiáveis para pesquisa
+    Ldado *lista = NULL;
+    char *nome_arquivo = "saturado-entrada-pressao.txt";
+
+    //Abrindo arquivo
+    fileTabela = abrir_arquivo(fileTabela, nome_arquivo);
+
+    //Contando quantidade de linhas no arquivo
+    int linhas = quantidade_linhas(fileTabela); 
+
+
+    //resetando o ponteiro do arquivo
+    fileTabela = resetar_tabela(fileTabela, nome_arquivo);
+
+
+    //Construir lista
+    lista = extrair_dados_pressao(fileTabela, linhas, lista);
+
+    listar_elementos(lista);
+
+    //Pesquisando Pressao
+    float pressao_consulta;
+    printf("\n\n\tDigite a temperatura em kPa: ");
+    scanf("%f",&pressao_consulta);
+
+    //Pesquisa completa
+    pesquisar_interpolado_pressao(lista, pressao_consulta);
+    
+    //fechar tabela
+    fclose(fileTabela);
+    
 }
 
 int main(){
@@ -237,7 +369,8 @@ int main(){
         printf("\n\n\n\n\n\n\nMenu de opcoes\n");
         printf("\t\t-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("\t\t\t1 = Pesquisa saturado com entrada temperatura\n");
-        printf("\t\t\t2 = Sair do programa\n");
+        printf("\t\t\t2 = Pesquisa saturado com entrada pressao\n");
+        printf("\t\t\t0 = Sair do programa\n");
         printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("Opcao: ");
         scanf("%d",&opcao);
@@ -245,7 +378,10 @@ int main(){
         if (opcao == 1){
             pesquisar_temperatura_saturado();
         }
-        else{
+        else if (opcao == 2){
+            pesquisar_pressao_saturado();
+        }
+        else if (opcao == 0){
             sair = 0;
         }
     }
