@@ -2,24 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct tdado{
-    int temperatura;
-    float pressao_sat;
-    float vf;
-    float vg;
-    float uf;
-    float ufg;
-    float ug;
-    float hf;
-    float hfg;
-    float hg;
-    float sf;
-    float sfg;
-    float sg;
-    struct tdado *esq;
-    struct tdado *dir;
-} Tdado;
-
 typedef struct ldado{
     int temperatura;
     float pressao_sat;
