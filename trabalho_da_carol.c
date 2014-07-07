@@ -521,34 +521,89 @@ void pesquisar_superarquecido(){
 
 
 typedef struct dadop1{
-    float temperatura;
-    float pressao_sat;
-    float vf;
     float vg;
-    float uf;
-    float ufg;
-    float ug;
-    float hf;
-    float hfg;
     float hg;
-    float sf;
-    float sfg;
     float sg;
     struct dadop1 *pro;
-} dadop1;
+} Dadop1;
+
+
+Dadop1 *pesquisar_interpolado_pressao_ciclo(Ldado *lista, float pressao){
+    Dadop1 *p1 = NULL;
+    Ldado *dados_consulta = consultar_pressao(lista, pressao);
+    if (dados_consulta == NULL){
+        Ldado *dados_consulta = interpola_pesquisa_pressao(lista, pressao);
+        if (dados_consulta == NULL){
+            printf("\n\t\t%s\n", "Erro na consulta. Insira uma pressao valida");
+        }
+        else{
+            p1 = (Dadop1 *) malloc(sizeof(Dadop1));
+            p1->vg = dados_consulta->vg;
+            p1->hg = dados_consulta->hg;
+            p1->sg = dados_consulta->sg;
+        }
+    }
+    else{
+        p1 = (Dadop1 *) malloc(sizeof(Dadop1));
+        p1->vg = dados_consulta->vg;
+        p1->hg = dados_consulta->hg;
+        p1->sg = dados_consulta->sg;
+    }
+    return p1;
+}
+
+
+Dadop1 *pesquisar_p1(float pressao){
+    
+    //iniciando vairiáveis para pesquisa
+    Ldado *lista = NULL;
+    Dadop1 *p1 = NULL;
+    char *nome_arquivo = "saturado-entrada-pressao.txt";
+
+    //Abrindo arquivo
+    fileTabela = abrir_arquivo(fileTabela, nome_arquivo);
+
+    //Contando quantidade de linhas no arquivo
+    int linhas = quantidade_linhas(fileTabela); 
+
+    //resetando o ponteiro do arquivo
+    fileTabela = resetar_tabela(fileTabela, nome_arquivo);
+
+    //Construir lista
+    lista = extrair_dados_pressao(fileTabela, linhas, lista);
+
+    //Pesquisa completa
+    p1 = pesquisar_interpolado_pressao_ciclo(lista, pressao);
+    
+    //fechar tabela
+    fclose(fileTabela);
+
+    return p1;
+
+}
 
 
 void pesquisar_ciclo_refrigeracao(){
     //entrada: pressao_max, pressao_min, vazao massica
     //saida: propriedades em cada ponto, p1 (Vv, Hv, Sv, tabela pressao com pressao_min), p2, p3, p4
 
-    pesquisar_p1(); 
+    float pressao_menor;
+    printf("\n\n\tDigite a menor pressao em kPa: ");
+    scanf("%f",&pressao_menor);
+
+    Dadop1 *p1 = NULL;
+    p1 = pesquisar_p1(pressao_menor);
+
+    printf("\n\tDados de saida para P1: \n");
+    printf("\n\t\tVv: %f\n",p1->vg); 
+    printf("\n\t\tHv: %f\n",p1->hg);
+    printf("\n\t\tSv: %f\n",p1->sg);
 
 }
 
 int main(){
 
-    /*int opcao;
+    int opcao;
     int sair = 1; 
 
     while(sair){
@@ -558,7 +613,7 @@ int main(){
         printf("\t\t\t2 = Pesquisa saturado com entrada pressao\n");
         printf("\t\t\t3 = Pesquisa super-aquecido\n");
         printf("\t\t\t4 = Pesquisa comprimido com entrada temperatura\n");
-        printf("\t\t\t5 = Pesquisa comprimido com entrada pressao\n");
+        printf("\t\t\t5 = Pesquisa ciclo refrigeracao\n");
         printf("\t\t\t0 = Sair do programa\n");
         printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("Opcao: ");
@@ -581,15 +636,13 @@ int main(){
             pesquisar_temperatura_saturado();
         }
         else if (opcao == 5){
-            printf("\n\t%s","Pesquisa comprimido com entrada pressao");
-            pesquisar_pressao_saturado();
+            printf("\n\t%s","Pesquisa ciclo refrigeracao");
+            pesquisar_ciclo_refrigeracao();
         }
-        else if (opcao == 0){
+        else{
             sair = 0;
         }
-    }*/
-
-    pesquisar_ciclo_refrigeracao();
+    }
 
     printf("\n\n\tFIM\n\n");
     return 0;
