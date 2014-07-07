@@ -107,18 +107,18 @@ Ldado *interpola_pesquisa_temperatura(Ldado *lista, float temperatura){
 void mostrar_resultado_pesquisa_lista(Ldado *dados_consulta){
     printf("\n\tDados da consulta:\n");
     printf("\t\tTemperatura: %f graus Celcius\n", dados_consulta->temperatura); 
-    printf("\t\tPressao de Saturacao: %f kPa\n", dados_consulta->pressao_sat); 
-    printf("\t\tVolume Especifico Saturado Liquido: %f m^3/kg\n", dados_consulta->vf); 
-    printf("\t\tVolume Especifico Saturado Vapor: %f m^3/kg\n", dados_consulta->vg);
-    printf("\t\tEnergia Interna Saturado Liquido: %f kJ/kg\n", dados_consulta->uf); 
+    printf("\t\tPressao: %f kPa\n", dados_consulta->pressao_sat); 
+    printf("\t\tVolume Especifico Liquido: %f m^3/kg\n", dados_consulta->vf); 
+    printf("\t\tVolume Especifico Vapor: %f m^3/kg\n", dados_consulta->vg);
+    printf("\t\tEnergia Interna Liquido: %f kJ/kg\n", dados_consulta->uf); 
     printf("\t\tEnergia Interna Evaporacao: %f kJ/kg\n", dados_consulta->ufg);
-    printf("\t\tEnergia Interna Saturado Vapor: %f kJ/kg\n", dados_consulta->ug);  
-    printf("\t\tEntalpia Saturado Liquido: %f kJ/kg\n", dados_consulta->hf);
+    printf("\t\tEnergia Interna Vapor: %f kJ/kg\n", dados_consulta->ug);  
+    printf("\t\tEntalpia Liquido: %f kJ/kg\n", dados_consulta->hf);
     printf("\t\tEntalpia Evaporacao: %f kJ/kg\n", dados_consulta->hfg);
-    printf("\t\tEntalpia Saturado Vapor: %f kJ/kg\n", dados_consulta->hg);
-    printf("\t\tEntropia Saturado Liquido: %f kJ/kg . K\n", dados_consulta->sf);
+    printf("\t\tEntalpia Vapor: %f kJ/kg\n", dados_consulta->hg);
+    printf("\t\tEntropia Liquido: %f kJ/kg . K\n", dados_consulta->sf);
     printf("\t\tEntropia Evaporacao: %f kJ/kg . K\n",dados_consulta->sfg);
-    printf("\t\tEntropia Saturado Vapor: %f kJ/kg . K\n", dados_consulta->sg);
+    printf("\t\tEntropia Vapor: %f kJ/kg . K\n", dados_consulta->sg);
 }
 
 int quantidade_linhas(FILE *fileTabela){
@@ -530,19 +530,32 @@ int main(){
         printf("\t\t\t1 = Pesquisa saturado com entrada temperatura\n");
         printf("\t\t\t2 = Pesquisa saturado com entrada pressao\n");
         printf("\t\t\t3 = Pesquisa super-aquecido\n");
+        printf("\t\t\t4 = Pesquisa comprimido com entrada temperatura\n");
+        printf("\t\t\t5 = Pesquisa comprimido com entrada pressao\n");
         printf("\t\t\t0 = Sair do programa\n");
         printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("Opcao: ");
         scanf("%d",&opcao);
 
         if (opcao == 1){
+            printf("\n\t%s","Pesquisa saturado com entrada temperatura");
             pesquisar_temperatura_saturado();
         }
         else if (opcao == 2){
+            printf("\n\t%s","Pesquisa saturado com entrada pressao");
             pesquisar_pressao_saturado();
         }
         else if (opcao == 3){
+            printf("\n\t%s","Pesquisa super-aquecido");
             pesquisar_superarquecido();
+        }
+        else if (opcao == 4){
+            printf("\n\t%s","Pesquisa comprimido com entrada temperatura");
+            pesquisar_temperatura_saturado();
+        }
+        else if (opcao == 5){
+            printf("\n\t%s","Pesquisa comprimido com entrada pressao");
+            pesquisar_pressao_saturado();
         }
         else if (opcao == 0){
             sair = 0;
