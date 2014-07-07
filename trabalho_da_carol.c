@@ -22,6 +22,17 @@ typedef struct ldado{
 } Ldado;
 
 
+typedef struct ldadosa{
+    float temperatura;
+    float pressao;
+    float v;
+    float u;
+    float h;
+    float s;
+    struct ldadosa *pro;
+} Ldadosa;
+
+
 Ldado *adicionar_dado_lista(Ldado *lista, float temperatura, float pressao_sat, float vf, float vg, float uf, float ufg, float ug, float hf, float hfg, float hg, float sf, float sfg, float sg){
     if (lista != NULL){
         lista->pro = adicionar_dado_lista(lista->pro, temperatura, pressao_sat, vf, vg, uf, ufg, ug, hf, hfg, hg, sf, sfg, sg);
@@ -337,15 +348,13 @@ void pesquisar_pressao_saturado(){
     //Contando quantidade de linhas no arquivo
     int linhas = quantidade_linhas(fileTabela); 
 
-
     //resetando o ponteiro do arquivo
     fileTabela = resetar_tabela(fileTabela, nome_arquivo);
-
 
     //Construir lista
     lista = extrair_dados_pressao(fileTabela, linhas, lista);
 
-    listar_elementos(lista);
+    //listar_elementos(lista);
 
     //Pesquisando Pressao
     float pressao_consulta;
@@ -360,6 +369,156 @@ void pesquisar_pressao_saturado(){
     
 }
 
+void listar_elementos_superaquecido(Ldadosa *lista){
+    if (lista != NULL){
+        printf("%f %f %f %f %f %f \n", lista->pressao, lista->temperatura, lista->v, lista->u, lista->h, lista->s);
+        listar_elementos_superaquecido(lista->pro);
+    }
+}
+
+Ldadosa *adicionar_dado_lista_superaquecido(Ldadosa *lista, float pressao, float temperatura, float v, float u, float h, float s){
+    if (lista != NULL){
+        lista->pro = adicionar_dado_lista_superaquecido(lista->pro, pressao, temperatura, v, u, h, s);
+    }
+    else {
+        lista = (Ldadosa *) malloc(sizeof(Ldadosa));
+        lista->temperatura = temperatura;
+        lista->pressao = pressao;
+        lista->v = v;
+        lista->u = u;
+        lista->h = h;
+        lista->s = s;
+        lista->pro = NULL;
+    }
+    return lista;
+}
+
+Ldadosa *extrair_dados_superaquecido(FILE *fileTabela, int linhas, Ldadosa *lista){
+    int i;
+    float temperatura;
+    float pressao;
+    float v;
+    float u;
+    float h;
+    float s;
+    for (i = 0; i < linhas; ++i)
+    {
+        fscanf(fileTabela,"%f %f %f %f %f %f\n", &pressao, &temperatura, &v, &u, &h, &s);
+        //printf("%f %f %f %f %f %f\n", pressao, temperatura, v, u, h, s);
+        lista = adicionar_dado_lista_superaquecido(lista, pressao, temperatura, v, u, h, s);
+            
+    }
+    return lista;
+}
+
+Ldadosa *consultar_superaquecido(Ldadosa *lista, float pressao, float temperatura){
+    if (lista != NULL){
+        if (lista->pressao == pressao && lista->temperatura == temperatura){
+            return lista;
+        }
+        else{
+            consultar_superaquecido(lista->pro, pressao, temperatura);
+        }
+    }
+    else{
+        return NULL;
+    }
+}
+
+Ldadosa *interpola_pesquisa_superaquecido(Ldadosa *lista, float pressao, float temperatura){
+    Ldadosa *ant, *post, *dados_consulta = NULL;
+    post = lista;
+    float constante_pressao = 1;
+    float constante_temperatura = 1;
+    //achar constante pressao
+    while(post != NULL){
+        if (lista->pressao <= pressao && post->pressao >= pressao){
+            constante_pressao = (pressao - ant->pressao)/(post->pressao - ant->pressao);
+            break;        
+        }
+        ant = post;
+        post = post->pro;
+    }
+    post = lista;
+    while(post != NULL){
+        if (lista->temperatura <= temperatura && post->temperatura >= temperatura){
+            constante_temperatura = (temperatura - ant->temperatura)/(post->temperatura - ant->temperatura);
+            break;        
+        }
+        ant = post;
+        post = post->pro;
+    }
+    dados_consulta = (Ldadosa *) malloc(sizeof(Ldadosa));
+    dados_consulta->pressao = pressao;
+    dados_consulta->temperatura = temperatura;
+    dados_consulta->v = (post->v - ant->v)*constante_temperatura*constante_pressao + ant->v;
+    dados_consulta->u = (post->u - ant->u)*constante_temperatura*constante_pressao + ant->u;
+    dados_consulta->h = (post->h - ant->h)*constante_temperatura*constante_pressao + ant->h;
+    dados_consulta->s = (post->s - ant->s)*constante_temperatura*constante_pressao + ant->s;
+    return dados_consulta;
+}
+
+void mostrar_resultado_pesquisa_superaquecido(Ldadosa *dados_consulta){
+    printf("\n\tDados da consulta:\n");
+    printf("\t\tPressao: %f MPa\n", dados_consulta->pressao);
+    printf("\t\tTemperatura: %f graus Celcius\n", dados_consulta->temperatura); 
+    printf("\t\tVolume Especifico Super-aquecido: %f m^3/kg\n", dados_consulta->v); 
+    printf("\t\tEnergia Interna Super-aquecido: %f kJ/kg\n", dados_consulta->u); 
+    printf("\t\tEntalpia Saturado Super-aquecido: %f kJ/kg\n", dados_consulta->h);
+    printf("\t\tEntropia Saturado Super-aquecido: %f kJ/kg . K\n", dados_consulta->s);
+}
+
+void pesquisar_interpolado_superaquecido(Ldadosa *lista, float pressao, float temperatura){
+    Ldadosa *dados_consulta = consultar_superaquecido(lista, pressao, temperatura);
+    if (dados_consulta == NULL){
+        Ldadosa *dados_consulta = interpola_pesquisa_superaquecido(lista, pressao, temperatura);
+        if (dados_consulta == NULL){
+            printf("\n\t\t%s\n", "Erro na consulta. Insira uma pressao valida");
+        }
+        else{
+            mostrar_resultado_pesquisa_superaquecido(dados_consulta);
+        }
+    }
+    else{
+        mostrar_resultado_pesquisa_superaquecido(dados_consulta);
+    }
+
+}
+
+void pesquisar_superarquecido(){
+
+    //iniciando vairiáveis para pesquisa
+    Ldadosa *lista = NULL;
+    char *nome_arquivo = "superaquecido.txt";
+
+    //Abrindo arquivo
+    fileTabela = abrir_arquivo(fileTabela, nome_arquivo);
+
+    //Contando quantidade de linhas no arquivo
+    int linhas = quantidade_linhas(fileTabela);
+
+    //resetando o ponteiro do arquivo
+    fileTabela = resetar_tabela(fileTabela, nome_arquivo);
+
+    //Construir lista
+    lista = extrair_dados_superaquecido(fileTabela, linhas, lista);
+
+    //listar
+    //listar_elementos_superaquecido(lista);
+
+    //Pesquisa
+    float pressao_consulta;
+    printf("\n\n\tDigite a pressao em MPa: ");
+    scanf("%f",&pressao_consulta);
+    float temperatura_consulta;
+    printf("\tDigite a temperatura em graus celcius: ");
+    scanf("%f",&temperatura_consulta);
+
+    //Pesquisa completa
+    pesquisar_interpolado_superaquecido(lista, pressao_consulta, temperatura_consulta);
+
+}
+
 int main(){
 
     int opcao;
@@ -370,6 +529,7 @@ int main(){
         printf("\t\t-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("\t\t\t1 = Pesquisa saturado com entrada temperatura\n");
         printf("\t\t\t2 = Pesquisa saturado com entrada pressao\n");
+        printf("\t\t\t3 = Pesquisa super-aquecido\n");
         printf("\t\t\t0 = Sair do programa\n");
         printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("Opcao: ");
@@ -380,6 +540,9 @@ int main(){
         }
         else if (opcao == 2){
             pesquisar_pressao_saturado();
+        }
+        else if (opcao == 3){
+            pesquisar_superarquecido();
         }
         else if (opcao == 0){
             sair = 0;
