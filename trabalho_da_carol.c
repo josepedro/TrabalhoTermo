@@ -530,8 +530,7 @@ int main(){
         printf("\t\t\t1 = Pesquisa saturado com entrada temperatura\n");
         printf("\t\t\t2 = Pesquisa saturado com entrada pressao\n");
         printf("\t\t\t3 = Pesquisa super-aquecido\n");
-        printf("\t\t\t4 = Pesquisa comprimido com entrada temperatura\n");
-        printf("\t\t\t5 = Pesquisa comprimido com entrada pressao\n");
+        printf("\t\t\t4 = Pesquisa liquido comprimido\n");
         printf("\t\t\t0 = Sair do programa\n");
         printf("\t\t_-__-__-__-__-__-__-__-__-__-__-__-___-___-___-___-_\n");
         printf("Opcao: ");
@@ -550,12 +549,8 @@ int main(){
             pesquisar_superarquecido();
         }
         else if (opcao == 4){
-            printf("\n\t%s","Pesquisa comprimido com entrada temperatura");
+            printf("\n\t%s","Pesquisa liquido comprimido");
             pesquisar_temperatura_saturado();
-        }
-        else if (opcao == 5){
-            printf("\n\t%s","Pesquisa comprimido com entrada pressao");
-            pesquisar_pressao_saturado();
         }
         else if (opcao == 0){
             sair = 0;
