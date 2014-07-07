@@ -519,9 +519,36 @@ void pesquisar_superarquecido(){
 
 }
 
+
+typedef struct dadop1{
+    float temperatura;
+    float pressao_sat;
+    float vf;
+    float vg;
+    float uf;
+    float ufg;
+    float ug;
+    float hf;
+    float hfg;
+    float hg;
+    float sf;
+    float sfg;
+    float sg;
+    struct dadop1 *pro;
+} dadop1;
+
+
+void pesquisar_ciclo_refrigeracao(){
+    //entrada: pressao_max, pressao_min, vazao massica
+    //saida: propriedades em cada ponto, p1 (Vv, Hv, Sv, tabela pressao com pressao_min), p2, p3, p4
+
+    pesquisar_p1(); 
+
+}
+
 int main(){
 
-    int opcao;
+    /*int opcao;
     int sair = 1; 
 
     while(sair){
@@ -560,7 +587,9 @@ int main(){
         else if (opcao == 0){
             sair = 0;
         }
-    }
+    }*/
+
+    pesquisar_ciclo_refrigeracao();
 
     printf("\n\n\tFIM\n\n");
     return 0;
